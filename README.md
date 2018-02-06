@@ -1,6 +1,6 @@
 # DP-GAN
 
-This is the code used in the paper titled DP-GAN: Diversity-Promoting Generative Adversarial Network for Generating Informative and Diversified Text, the link is http://arxiv.org/abs/1802.01345
+This is the code used in the paper titled DP-GAN: Diversity-Promoting Generative Adversarial Network for Generating Informative and Diversified Text. The link is http://arxiv.org/abs/1802.01345
 
 
 # Requirements
