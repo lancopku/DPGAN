@@ -1,5 +1,8 @@
 # DP-GAN
 
+This is the code used in the paper titled DP-GAN: Diversity-Promoting Generative Adversarial Network for Generating Informative and Diversified Text, the link is http://arxiv.org/abs/1802.01345
+
+
 # Requirements
 The software is written in tensorflow. It requires the following packages:
 
@@ -20,7 +23,9 @@ python main.py
 The default options can be edited in main.py.
  
  
- @inproceedings{dnerre,
+
+
+@inproceedings{dnerre,
 
 author = {Jingjing Xu, Xu Sun, Xuancheng Ren, Junyang Lin, Binzhen Wei, Wei Li},
 
