@@ -23,7 +23,9 @@ python main.py
 The default options can be edited in main.py.
  
  
+# Cite
 
+If you use this code, please cite the following paper:
 
 @inproceedings{dnerre,
 
