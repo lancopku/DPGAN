@@ -27,7 +27,7 @@ The default options can be edited in main.py.
 
 If you use this code, please cite the following paper:
 
-@inproceedings{dnerre,
+@inproceedings{dp-gan,
 
 author = {Jingjing Xu, Xu Sun, Xuancheng Ren, Junyang Lin, Binzhen Wei, Wei Li},
 
@@ -42,7 +42,6 @@ year = {2018},
 
 url = 
 http://arxiv.org/abs/1802.01345
-
 }
 
 
