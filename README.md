@@ -12,14 +12,17 @@ Tensorflow 1.3
 
 # Preparing the data
 
+```bash
 python review_generation_dataset/generate_review.py
+```
 
 The sample is shown in review_generation_dataset/train (test).
 
 # How it works
 
+```bash
 python main.py
-
+```
 The default options can be edited in main.py.
  
  
