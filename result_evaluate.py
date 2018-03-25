@@ -58,11 +58,33 @@ class Evaluate(object):
                         self.all_unigram[word]=1
                         self.unigram_num+=1
 
-
-        tf.logging.info("sentence number: "+str(self.sen_num)+" unique sentence number: "+str(len(self.all_sentence))+" unique sentence rate: "+str(len(self.all_sentence)/(1.0*self.sen_num)))
-        tf.logging.info("unigram number: "+str(self.unigram_num)+" unique unigram number: "+str(len(self.all_unigram))+" unique unigram rate: "+str(len(self.all_unigram)/(1.0*self.unigram_num)))
-        tf.logging.info("bigram number: " + str(self.bigram_num) + " unique bigram number: " + str(
+        if self.sen_num == 0:
+          tf.logging.info("sentence number: "+str(self.sen_num)+" unique sentence number: "+str(len(self.all_sentence))+" unique sentence rate: "+str(0))
+        else:
+          tf.logging.info("sentence number: "+str(self.sen_num)+" unique sentence number: "+str(len(self.all_sentence))+" unique sentence rate: "+str(len(self.all_sentence)/(1.0*self.sen_num)))
+        if self.unigram_num == 0:
+          tf.logging.info("unigram number: "+str(self.unigram_num)+" unique unigram number: "+str(len(self.all_unigram))+" unique unigram rate: "+str(0))
+        else:
+          tf.logging.info("unigram number: "+str(self.unigram_num)+" unique unigram number: "+str(len(self.all_unigram))+" unique unigram rate: "+str(len(self.all_unigram)/(1.0*self.unigram_num)))
+        if self.bigram_num == 0:
+          tf.logging.info("bigram number: " + str(self.bigram_num) + " unique bigram number: " + str(
+            len(self.all_bigram)) + " unique bigram rate: " + str(0))
+        else:
+          tf.logging.info("bigram number: " + str(self.bigram_num) + " unique bigram number: " + str(
             len(self.all_bigram)) + " unique bigram rate: " + str(len(self.all_bigram) / (1.0 * self.bigram_num)))
-        tf.logging.info("trigram number: " + str(self.trigram_num) + " unique trigram number: " + str(
+        if self.trigram_num == 0:
+          tf.logging.info("trigram number: " + str(self.trigram_num) + " unique trigram number: " + str(
+            len(self.all_trigram)) + " unique trigram rate: " + str(0))
+        else:
+          tf.logging.info("trigram number: " + str(self.trigram_num) + " unique trigram number: " + str(
             len(self.all_trigram)) + " unique trigram rate: " + str(len(self.all_trigram) / (1.0 * self.trigram_num)))
+          
+          
+          
+        #tf.logging.info("sentence number: "+str(self.sen_num)+" unique sentence number: "+str(len(self.all_sentence))+" unique sentence rate: "+str(len(self.all_sentence)/(1.0*self.sen_num)))
+        #tf.logging.info("unigram number: "+str(self.unigram_num)+" unique unigram number: "+str(len(self.all_unigram))+" unique unigram rate: "+str(len(self.all_unigram)/(1.0*self.unigram_num)))
+        #tf.logging.info("bigram number: " + str(self.bigram_num) + " unique bigram number: " + str(
+        #    len(self.all_bigram)) + " unique bigram rate: " + str(len(self.all_bigram) / (1.0 * self.bigram_num)))
+        #tf.logging.info("trigram number: " + str(self.trigram_num) + " unique trigram number: " + str(
+        #    len(self.all_trigram)) + " unique trigram rate: " + str(len(self.all_trigram) / (1.0 * self.trigram_num)))
 

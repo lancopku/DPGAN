@@ -20,18 +20,20 @@ class Generated_sample(object):
         self.batches = batcher.get_batches(mode='train')
         self.test_batches = batcher.get_batches(mode='test')
         self.current_batch = 0
-        self.train_sample_whole_positive_dir = os.path.join("train","positive")
-        self.train_sample_whole_negative_dir = os.path.join("train","negative")
-        self.test_sample_whole_positive_dir = os.path.join("test", "positive")
-        self.test_sample_whole_negative_dir = os.path.join("test", "negative")
+        if not os.path.exists("discriminator_train"): os.mkdir("discriminator_train")
+        if not os.path.exists("discriminator_test"): os.mkdir("discriminator_test")
+        self.train_sample_whole_positive_dir = os.path.join("discriminator_train","positive")
+        self.train_sample_whole_negative_dir = os.path.join("discriminator_train","negative")
+        self.test_sample_whole_positive_dir = os.path.join("discriminator_test", "positive")
+        self.test_sample_whole_negative_dir = os.path.join("discriminator_test", "negative")
         if not os.path.exists(self.train_sample_whole_positive_dir): os.mkdir(self.train_sample_whole_positive_dir)
         if not os.path.exists(self.train_sample_whole_negative_dir): os.mkdir(self.train_sample_whole_negative_dir)
         if not os.path.exists(self.test_sample_whole_positive_dir): os.mkdir(self.test_sample_whole_positive_dir)
         if not os.path.exists(self.test_sample_whole_negative_dir): os.mkdir(self.test_sample_whole_negative_dir)
-        self.temp_positive_dir = os.path.join("temp_positive")
-        self.temp_negative_dir = os.path.join("temp_negative")
-        if not os.path.exists(self.temp_positive_dir): os.mkdir(self.temp_positive_dir)
-        if not os.path.exists(self.temp_negative_dir): os.mkdir(self.temp_negative_dir)
+        self.temp_positive_dir = ""
+        self.temp_negative_dir =""
+        #if not os.path.exists(self.temp_positive_dir): os.mkdir(self.temp_positive_dir)
+        #if not os.path.exists(self.temp_negative_dir): os.mkdir(self.temp_negative_dir)
 
 
     def generator_sample_example(self, positive_dir, negative_dir, num_batch):
@@ -360,7 +362,7 @@ class Generated_sample(object):
         write_negative_file.close()
         write_positive_file.close()
 
-    def generator_whole_negative_example(self):
+    def generator_train_negative_example(self):
 
         counter = 0
         step = 0
@@ -558,10 +560,10 @@ class Generated_sample(object):
                 #self.write_negtive_to_json(original_review, decoded_output, counter)
 
                 #counter += 1  # this is how many examples we've decoded
-        file_temp = open(train_step+"_temp_result.txt",'w')
+        '''file_temp = open(train_step+"_temp_result.txt",'w')
         for hop in list_hop:
             file_temp.write(hop+"\n")
-        file_temp.close()
+        file_temp.close()'''
         '''new_ref_list =[]
         for ref in list_ref:
             sens = nltk.sent_tokenize(ref)

@@ -21,7 +21,7 @@ The sample is shown in review_generation_dataset/train (test).
 # How it works
 
 ```bash
-python main.py
+bash run.sh
 ```
 The default options can be edited in main.py.
  

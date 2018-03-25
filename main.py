@@ -50,7 +50,7 @@ tf.app.flags.DEFINE_string('data_path', 'review_generation_dataset/train/* ', 'P
 tf.app.flags.DEFINE_string('vocab_path', 'review_generation_dataset/vocab.txt', 'Path expression to text vocabulary file.')
 
 # Important settings
-tf.app.flags.DEFINE_string('mode', 'train', 'must be one of train/eval/decode')
+tf.app.flags.DEFINE_string('mode', 'train', 'must be one of adversarial_train/train_generator/train_discriminator')
 
 # Where to save output
 tf.app.flags.DEFINE_string('log_root', '', 'Root directory for all logging.')
@@ -93,14 +93,13 @@ def setup_training_generator(model):
 
   model.build_graph() # build the graph
 
-  saver = tf.train.Saver(max_to_keep=20)  # we use this to load checkpoints for decoding
+  saver = tf.train.Saver(max_to_keep=10)  # we use this to load checkpoints for decoding
   sess = tf.Session(config=util.get_config())
-  #sess.run(tf.train.Saver(max_to_keep=20))
-  #init = tf.global_variables_initializer()
-  #sess.run(init)
+  init = tf.global_variables_initializer()
+  sess.run(init)
 
   # Load an initial checkpoint to use for decoding
-  util.load_ckpt(saver, sess, ckpt_dir="train-generator")
+  #util.load_ckpt(saver, sess, ckpt_dir="train-generator")
 
 
   return sess, saver,train_dir
@@ -113,11 +112,11 @@ def setup_training_discriminator(model):
 
     model.build_graph()  # build the graph
 
-    saver = tf.train.Saver(max_to_keep=20)  # we use this to load checkpoints for decoding
+    saver = tf.train.Saver(max_to_keep=10)  # we use this to load checkpoints for decoding
     sess = tf.Session(config=util.get_config())
-    #init = tf.global_variables_initializer()
-    #sess.run(init)
-    util.load_ckpt(saver, sess, ckpt_dir="train-discriminator")
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    #util.load_ckpt(saver, sess, ckpt_dir="train-discriminator")
 
 
 
@@ -144,7 +143,7 @@ def print_batch(batch):
 
 
 
-def run_pre_train_generator(model, batcher, max_run_epoch, sess, saver, train_dir, generatored):
+def run_pre_train_generator(model, batcher, max_run_epoch, sess, saver, train_dir, generated):
     tf.logging.info("starting run_pre_train_generator")
     epoch = 0
     while epoch < max_run_epoch:
@@ -170,9 +169,9 @@ def run_pre_train_generator(model, batcher, max_run_epoch, sess, saver, train_di
                 t0 = time.time()
                 tf.logging.info('loss: %f', loss_window / 100)  # print the loss to screen
                 loss_window = 0.0
-            if train_step % 10000 == 0:
+            if train_step % 100 == 0:
                 saver.save(sess, train_dir + "/model", global_step=train_step)
-                bleu_score = generatored.compute_BLEU(str(train_step))
+                #bleu_score = generated.compute_BLEU(str(train_step))
                 #tf.logging.info('bleu: %f', bleu_score)  # print the loss to screen
 
         epoch += 1
@@ -389,7 +388,7 @@ def run_pre_train_discriminator(model, bachter, max_run_epoch, sess,saver, train
                 tf.logging.info('loss: %f', loss_window / 100)  # print the loss to screen
                 loss_window = 0.0
 
-            if train_step % 10000 == 0:
+            if train_step % 100 == 0:
                 saver.save(sess, train_dir + "/model", global_step=train_step)
                 run_test_discriminator(model, bachter, sess, saver, str(train_step))
                 #tf.logging.info('acc: %.6f', acc)  # print the loss to screen
@@ -400,7 +399,7 @@ def run_pre_train_discriminator(model, bachter, max_run_epoch, sess,saver, train
 def run_test_discriminator(model, batcher, sess,saver, train_step):
     tf.logging.info("starting run testing discriminator")
 
-    error_discriminator_file = codecs.open(train_step+ "error_discriminator.txt","w","utf-8")
+    discriminator_file = codecs.open("discriminator_result/"+train_step+ "discriminator.txt","w","utf-8")
 
     batches = batcher.get_batches("test")
     step = 0
@@ -418,8 +417,8 @@ def run_test_discriminator(model, batcher, sess,saver, train_step):
                 #print ([outloss[i][j][k] for k in range(len(outloss[i][j]))])
                 a ={"example": current_batch.review_sentenc_orig[i][j], "score": [np.float64(outloss[i][j][k]) for k in range(len(outloss[i][j]))], "sentence_level_score" : np.float64(outloss_sentence[i][j])}
                 string_a = json.dumps(a)
-                error_discriminator_file.write(string_a+"\n")
-    error_discriminator_file.close()
+                discriminator_file.write(string_a+"\n")
+    discriminator_file.close()
     return 0
 
 
@@ -475,7 +474,7 @@ def main(unused_argv):
   # Change log_root to FLAGS.log_root/FLAGS.exp_name and create the dir if necessary
   FLAGS.log_root = os.path.join(FLAGS.log_root, FLAGS.exp_name)
   if not os.path.exists(FLAGS.log_root):
-    if FLAGS.mode=="train":
+    if "train" in FLAGS.mode:
       os.makedirs(FLAGS.log_root)
     else:
       raise Exception("Logdir %s doesn't exist. Run in train mode to create it." % (FLAGS.log_root))
@@ -511,82 +510,130 @@ def main(unused_argv):
 
 
 
-  if hps_generator.mode == 'train':
+  if hps_generator.mode == 'adversarial_train':
     print("Start pre-training......")
     model = Generator(hps_generator, vocab)
 
     sess_ge, saver_ge, train_dir_ge = setup_training_generator(model)
     generated = Generated_sample(model, vocab, batcher, sess_ge)
-    print("Start pre-training generator......")
-    run_pre_train_generator(model, batcher, 10, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
+    #print("Start pre-training generator......")
+    #run_pre_train_generator(model, batcher, 1, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
 
-    print("Generating negetive examples......")
-    generated.generator_whole_negetive_example()
-    generated.generator_test_negetive_example()
+    #print("Generating negative examples......")
+    #generated.generator_train_negative_example()
+    #generated.generator_test_negative_example()
 
     model_dis = Discriminator(hps_discriminator, vocab)
-    dis_batcher = DisBatcher(hps_discriminator, vocab, "train/generated_samples_positive/*", "train/generated_samples_negetive/*", "test/generated_samples_positive/*", "test/generated_samples_negetive/*")
+    dis_batcher = DisBatcher(hps_discriminator, vocab, "discriminator_train/positive/*", "discriminator_train/negative/*", "discriminator_test/positive/*", "discriminator_test/negative/*")
     sess_dis, saver_dis, train_dir_dis = setup_training_discriminator(model_dis)
-    print("Start pre-training discriminator......")
+    #print("Start pre-training discriminator......")
     #run_test_discriminator(model_dis, dis_batcher, sess_dis, saver_dis, "test")
-    run_pre_train_discriminator(model_dis, dis_batcher, 25, sess_dis, saver_dis, train_dir_dis)
+    if not os.path.exists("discriminator_result"): os.mkdir("discriminator_result")
+    #run_pre_train_discriminator(model_dis, dis_batcher, 1, sess_dis, saver_dis, train_dir_dis)
+    
+    util.load_ckpt(saver_dis, sess_dis, ckpt_dir="train-discriminator")
 
     util.load_ckpt(saver_ge, sess_ge, ckpt_dir="train-generator")
     
-    generated.generator_sample_example("sample_temp_positive", "sample_temp_negetive", 1000)
+    
+    
+    #print("generate training data for discriminator")
+    #generated.generator_sample_example("discriminator_train_sample_positive", "discriminator_train_negative", 1000)
+    
+    if not os.path.exists("MLE"): os.mkdir("MLE")
 
-    generated.generator_test_sample_example("test_sample_temp_positive",
-                                       "test_sample_temp_negetive",
+    print("evaluate the diversity of MLE (decode based on sampling)")
+    generated.generator_test_sample_example("MLE/"+"MLE_sample_positive",
+                                       "MLE/"+"MLE_sample_negative",
                                        200)
-    generated.generator_test_max_example("test_max_temp_positive",
-                                       "test_max_temp_negetive",
+                                       
+    print("evaluate the diversity of MLE (decode based on max probability)")
+    generated.generator_test_max_example("MLE/"+"MLE_max_temp_positive",
+                                       "MLE/"+"MLE_max_temp_negative",
                                        200)
-    tf.logging.info("true data diversity: ")
-    eva = Evaluate()
-    eva.diversity_evaluate("test_sample_temp_positive" + "/*")
+    #tf.logging.info("true data diversity: ")
+    #eva = Evaluate()
+    #print("evaluate the diversity of true data")
+    #eva.diversity_evaluate("test_sample_temp_positive" + "/*")
 
 
 
-    print("Start adversial training......")
+    print("Start adversarial  training......")
+    if not os.path.exists("train_sample_generated"): os.mkdir("train_sample_generated")
+    if not os.path.exists("test_max_generated"): os.mkdir("test_max_generated")
+    if not os.path.exists("test_sample_generated"): os.mkdir("test_sample_generated")
+    
+    
+    
     whole_decay = False
     for epoch in range(1):
         batches = batcher.get_batches(mode='train')
         for step in range(int(len(batches)/1000)):
 
             run_train_generator(model,model_dis,sess_dis,batcher,dis_batcher,batches[step*1000:(step+1)*1000],sess_ge, saver_ge, train_dir_ge,generated) #(model, discirminator_model, discriminator_sess, batcher, dis_batcher, batches, sess, saver, train_dir, generated):
-            generated.generator_sample_example("sample_generated/"+str(epoch)+"epoch_step"+str(step)+"_temp_positive", "sample_generated/"+str(epoch)+"epoch_step"+str(step)+"_temp_negetive", 1000)
+            generated.generator_sample_example("train_sample_generated/"+str(epoch)+"epoch_step"+str(step)+"_temp_positive", "train_sample_generated/"+str(epoch)+"epoch_step"+str(step)+"_temp_negative", 1000)
             #generated.generator_max_example("max_generated/"+str(epoch)+"epoch_step"+str(step)+"_temp_positive", "max_generated/"+str(epoch)+"epoch_step"+str(step)+"_temp_negetive", 200)
 
             tf.logging.info("test performance: ")
             tf.logging.info("epoch: "+str(epoch)+" step: "+str(step))
+            print("evaluate the diversity of DP-GAN (decode based on  max probability)")
             generated.generator_test_sample_example(
                 "test_sample_generated/" + str(epoch) + "epoch_step" + str(step) + "_temp_positive",
-                "test_sample_generated/" + str(epoch) + "epoch_step" + str(step) + "_temp_negetive", 200)
+                "test_sample_generated/" + str(epoch) + "epoch_step" + str(step) + "_temp_negative", 200)
+            print("evaluate the diversity of DP-GAN (decode based on sampling)")
             generated.generator_test_max_example("test_max_generated/" + str(epoch) + "epoch_step" + str(step) + "_temp_positive",
-                                            "test_max_generated/" + str(epoch) + "epoch_step" + str(step) + "_temp_negetive",
+                                            "test_max_generated/" + str(epoch) + "epoch_step" + str(step) + "_temp_negative",
                                             200)
 
             dis_batcher.train_queue = []
             dis_batcher.train_queue = []
             for i in range(epoch+1):
               for j in range(step+1):
-                dis_batcher.train_queue += dis_batcher.fill_example_queue("sample_generated/"+str(i)+"epoch_step"+str(j)+"_temp_positive/*")
-                dis_batcher.train_queue += dis_batcher.fill_example_queue("sample_generated/"+str(i)+"epoch_step"+str(j)+"_temp_negetive/*")
+                dis_batcher.train_queue += dis_batcher.fill_example_queue("train_sample_generated/"+str(i)+"epoch_step"+str(j)+"_temp_positive/*")
+                dis_batcher.train_queue += dis_batcher.fill_example_queue("train_sample_generated/"+str(i)+"epoch_step"+str(j)+"_temp_negative/*")
             dis_batcher.train_batch = dis_batcher.create_batches(mode="train", shuffleis=True)
 
             #dis_batcher.valid_batch = dis_batcher.train_batch
             whole_decay = run_train_discriminator(model_dis, 5, dis_batcher, dis_batcher.get_batches(mode="train"),
                                                   sess_dis, saver_dis, train_dir_dis, whole_decay)
 
-  '''elif hps_generator.mode == 'decode':
-    decode_model_hps = hps_generator  # This will be the hyperparameters for the decoder model
-    model = Generator(decode_model_hps, vocab)
-    generated = Generated_sample(model, vocab, batcher)
-    bleu_score = generated.compute_BLEU()'=
-    tf.logging.info('bleu: %f', bleu_score)  # print the loss to screen'''
+  elif hps_generator.mode == 'train_generator':
+    print("Start pre-training......")
+    model = Generator(hps_generator, vocab)
 
-  else:
-    raise ValueError("The 'mode' flag must be one of train/eval/decode")
+    sess_ge, saver_ge, train_dir_ge = setup_training_generator(model)
+    generated = Generated_sample(model, vocab, batcher, sess_ge)
+    print("Start pre-training generator......")
+    run_pre_train_generator(model, batcher, 4, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
+
+    print("Generating negative examples......")
+    generated.generator_train_negative_example()
+    generated.generator_test_negative_example()
+  elif hps_generator.mode == 'train_discriminator':
+    print("Start pre-training......")
+    model = Generator(hps_generator, vocab)
+
+    sess_ge, saver_ge, train_dir_ge = setup_training_generator(model)
+    #generated = Generated_sample(model, vocab, batcher, sess_ge)
+    #print("Start pre-training generator......")
+    #run_pre_train_generator(model, batcher, 1, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
+
+    #print("Generating negative examples......")
+    #generated.generator_train_negative_example()
+    #generated.generator_test_negative_example()
+    #util.load_ckpt(saver_ge, sess_ge, ckpt_dir="train-generator")
+
+    model_dis = Discriminator(hps_discriminator, vocab)
+    dis_batcher = DisBatcher(hps_discriminator, vocab, "discriminator_train/positive/*", "discriminator_train/negative/*", "discriminator_test/positive/*", "discriminator_test/negative/*")
+    sess_dis, saver_dis, train_dir_dis = setup_training_discriminator(model_dis)
+    print("Start pre-training discriminator......")
+    #run_test_discriminator(model_dis, dis_batcher, sess_dis, saver_dis, "test")
+    if not os.path.exists("discriminator_result"): os.mkdir("discriminator_result")
+    run_pre_train_discriminator(model_dis, dis_batcher, 1, sess_dis, saver_dis, train_dir_dis)
+
+    #util.load_ckpt(saver_ge, sess_ge, ckpt_dir="train-generator")
+    
+
 
 if __name__ == '__main__':
   tf.app.run()
