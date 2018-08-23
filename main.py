@@ -388,7 +388,7 @@ def run_pre_train_discriminator(model, bachter, max_run_epoch, sess,saver, train
                 tf.logging.info('loss: %f', loss_window / 100)  # print the loss to screen
                 loss_window = 0.0
 
-            if train_step % 100 == 0:
+            if train_step % 10000 == 0:
                 saver.save(sess, train_dir + "/model", global_step=train_step)
                 run_test_discriminator(model, bachter, sess, saver, str(train_step))
                 #tf.logging.info('acc: %.6f', acc)  # print the loss to screen
@@ -516,30 +516,19 @@ def main(unused_argv):
 
     sess_ge, saver_ge, train_dir_ge = setup_training_generator(model)
     generated = Generated_sample(model, vocab, batcher, sess_ge)
-    #print("Start pre-training generator......")
-    #run_pre_train_generator(model, batcher, 1, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
 
-    #print("Generating negative examples......")
-    #generated.generator_train_negative_example()
-    #generated.generator_test_negative_example()
 
     model_dis = Discriminator(hps_discriminator, vocab)
     dis_batcher = DisBatcher(hps_discriminator, vocab, "discriminator_train/positive/*", "discriminator_train/negative/*", "discriminator_test/positive/*", "discriminator_test/negative/*")
     sess_dis, saver_dis, train_dir_dis = setup_training_discriminator(model_dis)
-    #print("Start pre-training discriminator......")
-    #run_test_discriminator(model_dis, dis_batcher, sess_dis, saver_dis, "test")
-    if not os.path.exists("discriminator_result"): os.mkdir("discriminator_result")
-    #run_pre_train_discriminator(model_dis, dis_batcher, 1, sess_dis, saver_dis, train_dir_dis)
+    
     
     util.load_ckpt(saver_dis, sess_dis, ckpt_dir="train-discriminator")
 
     util.load_ckpt(saver_ge, sess_ge, ckpt_dir="train-generator")
     
     
-    
-    #print("generate training data for discriminator")
-    #generated.generator_sample_example("discriminator_train_sample_positive", "discriminator_train_negative", 1000)
-    
+   
     if not os.path.exists("MLE"): os.mkdir("MLE")
 
     print("evaluate the diversity of MLE (decode based on sampling)")
@@ -551,12 +540,7 @@ def main(unused_argv):
     generated.generator_test_max_example("MLE/"+"MLE_max_temp_positive",
                                        "MLE/"+"MLE_max_temp_negative",
                                        200)
-    #tf.logging.info("true data diversity: ")
-    #eva = Evaluate()
-    #print("evaluate the diversity of true data")
-    #eva.diversity_evaluate("test_sample_temp_positive" + "/*")
-
-
+  
 
     print("Start adversarial  training......")
     if not os.path.exists("train_sample_generated"): os.mkdir("train_sample_generated")
@@ -566,7 +550,7 @@ def main(unused_argv):
     
     
     whole_decay = False
-    for epoch in range(1):
+    for epoch in range(10):
         batches = batcher.get_batches(mode='train')
         for step in range(int(len(batches)/1000)):
 
@@ -604,7 +588,7 @@ def main(unused_argv):
     sess_ge, saver_ge, train_dir_ge = setup_training_generator(model)
     generated = Generated_sample(model, vocab, batcher, sess_ge)
     print("Start pre-training generator......")
-    run_pre_train_generator(model, batcher, 4, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
+    run_pre_train_generator(model, batcher, 10, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
 
     print("Generating negative examples......")
     generated.generator_train_negative_example()
@@ -614,13 +598,7 @@ def main(unused_argv):
     model = Generator(hps_generator, vocab)
 
     sess_ge, saver_ge, train_dir_ge = setup_training_generator(model)
-    #generated = Generated_sample(model, vocab, batcher, sess_ge)
-    #print("Start pre-training generator......")
-    #run_pre_train_generator(model, batcher, 1, sess_ge, saver_ge, train_dir_ge,generated) # this is an infinite loop until 
-
-    #print("Generating negative examples......")
-    #generated.generator_train_negative_example()
-    #generated.generator_test_negative_example()
+    
     #util.load_ckpt(saver_ge, sess_ge, ckpt_dir="train-generator")
 
     model_dis = Discriminator(hps_discriminator, vocab)
@@ -629,7 +607,7 @@ def main(unused_argv):
     print("Start pre-training discriminator......")
     #run_test_discriminator(model_dis, dis_batcher, sess_dis, saver_dis, "test")
     if not os.path.exists("discriminator_result"): os.mkdir("discriminator_result")
-    run_pre_train_discriminator(model_dis, dis_batcher, 1, sess_dis, saver_dis, train_dir_dis)
+    run_pre_train_discriminator(model_dis, dis_batcher, 25, sess_dis, saver_dis, train_dir_dis)
 
     #util.load_ckpt(saver_ge, sess_ge, ckpt_dir="train-generator")
     
