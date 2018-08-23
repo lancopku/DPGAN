@@ -17,6 +17,7 @@ python review_generation_dataset/generate_review.py
 ```
 
 The sample is shown in review_generation_dataset/train (test).
+The whole Yelp dataset is avaliable at https://drive.google.com/open?id=1xCt04xWrVhbrSA7T5feV2WSukjmD4SnK
 
 # How it works
 
