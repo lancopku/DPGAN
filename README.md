@@ -26,7 +26,7 @@ bash run.sh
 ```
 The default options can be edited in main.py.
  
-# Output Folder Discription
+# Output Folder Description
 
 "discriminator_train" stores training data for our discriminator. Under this folder, "positive" folder stores the real-data text, and "negative" folder stores the generated text.
 
